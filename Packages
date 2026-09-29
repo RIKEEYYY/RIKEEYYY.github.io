@@ -1,0 +1,18 @@
+Package: com.rikeeyyy.ccasster
+Version: 0.2.2
+Architecture: iphoneos-arm64
+Maintainer: futur3sn0w
+Installed-Size: 1616
+Depends: firmware (>= 15.0), firmware (<< 17.0), ellekit, preferenceloader
+Filename: debs/com.rikeeyyy.ccasster_0.2.2_iphoneos-arm64.deb
+Size: 397122
+MD5sum: ad2a4c2791b75db6c5fdb0e92ee659a1
+SHA1: 43ac35a7cfbc643c234993b63b4ed0bcac9d6acd
+SHA256: 84f2a8141a5342a0b755af3e58d61d91df8dbac71cbe83af5cdc7b442f1b7104
+Section: Tweaks
+Description: An iOS 18-inspired, editable Control Center experience for iOS 16.
+Author: futur3sn0w
+Icon: https://futur3sn0w.github.io/repo/icons/com.futur3sn0w.ccaster.png
+Name: CCASSter
+Sileodepiction: https://futur3sn0w.github.io/repo/depictions/com.futur3sn0w.ccaster.json
+
