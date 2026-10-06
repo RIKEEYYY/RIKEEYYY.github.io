@@ -11,5 +11,6 @@ BUNDLE_NAME = 26BarPrefs
 26BarPrefs_PRIVATE_FRAMEWORKS = Preferences
 26BarPrefs_INSTALL_PATH = /Library/PreferenceBundles
 26BarPrefs_CFLAGS = -fobjc-arc
+26BarPrefs_LDFLAGS = -F$(TARGET_SYSROOT)/System/Library/PrivateFrameworks
 
 include $(THEOS_MAKE_PATH)/bundle.mk
