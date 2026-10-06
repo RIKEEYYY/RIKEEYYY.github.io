@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Status Bar</string>
+			<key>footerText</key>
+			<string>Enables the split modern notch status bar with side ears.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.rikeeyyy.26bar</string>
+			<key>key</key>
+			<string>enableNotchStatusBar</string>
+			<key>label</key>
+			<string>Modern Notched Bar</string>
+			<key>PostNotification</key>
+			<string>com.rikeeyyy.26bar/ReloadPrefs</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Gestures</string>
+			<key>footerText</key>
+			<string>Pull down from the top-right corner to open Control Center.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.rikeeyyy.26bar</string>
+			<key>key</key>
+			<string>enableTopCCGesture</string>
+			<key>label</key>
+			<string>Top-Right CC Gesture</string>
+			<key>PostNotification</key>
+			<string>com.rikeeyyy.26bar/ReloadPrefs</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>26Bar by RIKEEYYY</string>
+		</dict>
+	</array>
+	<key>title</key>
+	<string>26Bar</string>
+</dict>
+</plist>

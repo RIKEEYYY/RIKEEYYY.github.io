@@ -1,0 +1,59 @@
+name: Release 26Bar
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  build:
+    runs-on: macos-13
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Theos
+        run: |
+          git clone --recursive https://github.com/theos/theos.git ~/theos
+          echo "THEOS=~/theos" >> $GITHUB_ENV
+
+      - name: Set up iOS SDKs
+        run: |
+          git clone --quiet --depth=1 https://github.com/theos/sdks.git ~/theos/sdks
+
+      - name: Compile 26Bar
+        run: |
+          cd 26Bar
+          export THEOS=~/theos
+          make clean package THEOS_PACKAGE_SCHEME=rootless FINALPACKAGE=1
+
+      - name: Determine Tag
+        id: get_tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_tag.outputs.tag }}
+          name: 26Bar ${{ steps.get_tag.outputs.tag }} (iOS 15)
+          body: |
+            Modern notched status bar & top-right Control Center pull gesture for iOS 15.
+          files: 26Bar/packages/*.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
