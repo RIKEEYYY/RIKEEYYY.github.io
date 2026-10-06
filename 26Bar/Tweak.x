@@ -13,25 +13,32 @@ static void loadPreferences() {
     }
 }
 
+// Forward interface declarations so Clang recognizes methods and properties
+@interface _UIStatusBarPillView : UIView
+@end
+
 @interface SBControlCenterController : UIViewController
 + (id)sharedInstance;
 - (BOOL)isVisible;
 - (void)presentAnimated:(BOOL)animated completion:(id)completion;
 @end
 
-// Status Bar Hooks
+// -------------------------------------------------------------
+// 1. STATUS BAR HOOKS
+// -------------------------------------------------------------
+
 %hook UIStatusBar_Base
 
 + (Class)_implementationClass {
     if (enableNotchStatusBar) {
-        return %NSClassFromString(@"UIStatusBar_Modern");
+        return NSClassFromString(@"UIStatusBar_Modern");
     }
     return %orig;
 }
 
 + (void)_setImplementationClass:(Class)arg1 {
     if (enableNotchStatusBar) {
-        %orig(%NSClassFromString(@"UIStatusBar_Modern"));
+        %orig(NSClassFromString(@"UIStatusBar_Modern"));
     } else {
         %orig(arg1);
     }
@@ -43,7 +50,7 @@ static void loadPreferences() {
 
 + (void)setStatusBar:(Class)arg1 {
     if (enableNotchStatusBar) {
-        %orig(%NSClassFromString(@"UIStatusBar_Modern"));
+        %orig(NSClassFromString(@"UIStatusBar_Modern"));
     } else {
         %orig(arg1);
     }
@@ -136,6 +143,10 @@ static void loadPreferences() {
 }
 
 %end
+
+// -------------------------------------------------------------
+// CONSTRUCTOR
+// -------------------------------------------------------------
 
 %ctor {
     loadPreferences();
