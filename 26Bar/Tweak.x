@@ -13,52 +13,38 @@ static void loadPreferences() {
     }
 }
 
-// Forward interface declarations so Clang recognizes methods and properties
-@interface _UIStatusBarPillView : UIView
+// -------------------------------------------------------------
+// INTERFACE DECLARATIONS
+// -------------------------------------------------------------
+@interface _UIStatusBar : UIView
++ (Class)visualProviderClassForScreen:(UIScreen *)screen visualProviderInfo:(id)info;
 @end
 
 @interface SBControlCenterController : UIViewController
 + (id)sharedInstance;
 - (BOOL)isVisible;
 - (void)presentAnimated:(BOOL)animated completion:(id)completion;
+- (void)dismissAnimated:(BOOL)animated completion:(id)completion;
+@end
+
+@interface SpringBoard : UIApplication
 @end
 
 // -------------------------------------------------------------
-// 1. STATUS BAR HOOKS
+// 1. FORCE MODERN NOTCHED VISUAL PROVIDER (Split 54)
 // -------------------------------------------------------------
 
-%hook UIStatusBar_Base
+%hook _UIStatusBar
 
-+ (Class)_implementationClass {
++ (Class)visualProviderClassForScreen:(UIScreen *)screen visualProviderInfo:(id)info {
     if (enableNotchStatusBar) {
-        return NSClassFromString(@"UIStatusBar_Modern");
+        Class splitClass = NSClassFromString(@"_UIStatusBarVisualProvider_Split54");
+        if (splitClass) {
+            return splitClass;
+        }
     }
     return %orig;
 }
-
-+ (void)_setImplementationClass:(Class)arg1 {
-    if (enableNotchStatusBar) {
-        %orig(NSClassFromString(@"UIStatusBar_Modern"));
-    } else {
-        %orig(arg1);
-    }
-}
-
-%end
-
-%hook UIStatusBarWindow
-
-+ (void)setStatusBar:(Class)arg1 {
-    if (enableNotchStatusBar) {
-        %orig(NSClassFromString(@"UIStatusBar_Modern"));
-    } else {
-        %orig(arg1);
-    }
-}
-
-%end
-
-%hook _UIStatusBar
 
 + (double)heightForOrientation:(long long)orientation {
     if (enableNotchStatusBar) {
@@ -69,6 +55,7 @@ static void loadPreferences() {
 
 %end
 
+// Expand safe area insets to accommodate the 44pt modern notch layout
 %hook UIWindow
 
 - (UIEdgeInsets)safeAreaInsets {
@@ -79,16 +66,50 @@ static void loadPreferences() {
     return insets;
 }
 
-%new
-- (void)_handleCCSwipeDown:(UIScreenEdgePanGestureRecognizer *)recognizer {
+%end
+
+// -------------------------------------------------------------
+// 2. TOP RIGHT CONTROL CENTER PULL-DOWN
+// -------------------------------------------------------------
+
+%hook SpringBoard
+
+- (void)applicationDidFinishLaunching:(id)application {
+    %orig;
+
     if (!enableTopCCGesture) return;
 
-    if (recognizer.state == UIGestureRecognizerStateBegan) {
-        CGPoint location = [recognizer locationInView:self];
-        CGFloat screenWidth = self.bounds.size.width;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        UIWindow *keyWindow = nil;
+        for (UIWindow *window in [UIApplication sharedApplication].windows) {
+            if (window.isKeyWindow) {
+                keyWindow = window;
+                break;
+            }
+        }
+        if (!keyWindow && [UIApplication sharedApplication].windows.count > 0) {
+            keyWindow = [UIApplication sharedApplication].windows[0];
+        }
 
-        // Top right 35% of the screen
-        if (location.x > (screenWidth * 0.65)) {
+        if (keyWindow) {
+            UIScreenEdgePanGestureRecognizer *topRightPan = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(_handleTopRightCCPan:)];
+            topRightPan.edges = UIRectEdgeTop;
+            [keyWindow addGestureRecognizer:topRightPan];
+        }
+    });
+}
+
+%new
+- (void)_handleTopRightCCPan:(UIScreenEdgePanGestureRecognizer *)recognizer {
+    if (!enableTopCCGesture) return;
+
+    UIView *view = recognizer.view;
+    CGPoint location = [recognizer locationInView:view];
+    CGFloat width = view.bounds.size.width;
+
+    // Trigger only if swipe originated on the top-right side (> 60% width)
+    if (recognizer.state == UIGestureRecognizerStateBegan) {
+        if (location.x > (width * 0.60)) {
             SBControlCenterController *cc = [%c(SBControlCenterController) sharedInstance];
             if (![cc isVisible]) {
                 [cc presentAnimated:YES completion:nil];
@@ -97,47 +118,14 @@ static void loadPreferences() {
     }
 }
 
-- (void)didMoveToWindow {
-    %orig;
-    if (!enableTopCCGesture) return;
-
-    if ([self.screen isEqual:[UIScreen mainScreen]]) {
-        BOOL hasGesture = NO;
-        for (UIGestureRecognizer *g in self.gestureRecognizers) {
-            if ([g isKindOfClass:[UIScreenEdgePanGestureRecognizer class]] && 
-                ((UIScreenEdgePanGestureRecognizer *)g).edges == UIRectEdgeTop) {
-                hasGesture = YES;
-                break;
-            }
-        }
-
-        if (!hasGesture) {
-            UIScreenEdgePanGestureRecognizer *topPan = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(_handleCCSwipeDown:)];
-            topPan.edges = UIRectEdgeTop;
-            [self addGestureRecognizer:topPan];
-        }
-    }
-}
-
 %end
 
-%hook _UIStatusBarPillView
-
-- (void)layoutSubviews {
-    %orig;
-    if (enableNotchStatusBar) {
-        self.layer.cornerRadius = self.bounds.size.height / 2.0;
-        self.layer.masksToBounds = YES;
-    }
-}
-
-%end
-
+// Override presentation edge in SpringBoard's presentation context
 %hook SBControlCenterController
 
 - (unsigned long long)presentingEdge {
     if (enableTopCCGesture) {
-        return 1; // Top edge
+        return 1; // Top edge pull
     }
     return %orig;
 }
@@ -145,7 +133,7 @@ static void loadPreferences() {
 %end
 
 // -------------------------------------------------------------
-// CONSTRUCTOR
+// INITIALIZER
 // -------------------------------------------------------------
 
 %ctor {
