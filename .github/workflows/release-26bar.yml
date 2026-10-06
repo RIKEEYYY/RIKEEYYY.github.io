@@ -30,6 +30,7 @@ jobs:
 
       - name: Set up iOS SDKs
         run: |
+          rm -rf ~/theos/sdks
           git clone --quiet --depth=1 https://github.com/theos/sdks.git ~/theos/sdks
 
       - name: Compile 26Bar
