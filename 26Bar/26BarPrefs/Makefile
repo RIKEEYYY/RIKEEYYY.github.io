@@ -8,9 +8,8 @@ BUNDLE_NAME = 26BarPrefs
 
 26BarPrefs_FILES = $(wildcard *.m)
 26BarPrefs_FRAMEWORKS = UIKit
-26BarPrefs_PRIVATE_FRAMEWORKS = Preferences
 26BarPrefs_INSTALL_PATH = /Library/PreferenceBundles
 26BarPrefs_CFLAGS = -fobjc-arc
-26BarPrefs_LDFLAGS = -F$(TARGET_SYSROOT)/System/Library/PrivateFrameworks
+26BarPrefs_LDFLAGS = -undefined dynamic_lookup
 
 include $(THEOS_MAKE_PATH)/bundle.mk
