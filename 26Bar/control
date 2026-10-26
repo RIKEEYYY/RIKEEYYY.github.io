@@ -1,8 +1,8 @@
 Package: com.rikeeyyy.26bar
 Name: 26Bar
-Version: 0.0.1
+Version: 0.1.0
 Architecture: iphoneos-arm
-Description: An awesome MobileSubstrate tweak!
+Description: Modern split status bar and top-corner Control Center gestures for iOS 15.
 Maintainer: RIKEEYYY
 Author: RIKEEYYY
 Section: Tweaks

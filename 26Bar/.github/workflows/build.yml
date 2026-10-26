@@ -1,0 +1,44 @@
+name: Build 26Bar
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Theos
+        uses: Randomblock1/theos-action@v1
+
+      - name: Build rootless package
+        shell: bash
+        run: |
+          set -euo pipefail
+          make clean
+          make package THEOS_PACKAGE_SCHEME=rootless 2>&1 | tee build.log
+          shopt -s nullglob
+          packages=(packages/*.deb)
+          if (( ${#packages[@]} == 0 )); then
+            echo "No .deb package was generated in packages/" >&2
+            exit 1
+          fi
+          printf 'Generated package(s):\n'
+          printf '%s\n' "${packages[@]}"
+
+      - name: Upload package and build log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: 26Bar-rootless-deb
+          path: |
+            packages/*.deb
+            build.log
+          if-no-files-found: warn
